@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chatbot Giọt Hương Decant</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@500;600;700&family=Be+Vietnam+Pro:wght@400;500;600&display=swap">
+<style>
+/* Layout: thanh tab trên cùng, mỗi tab một khung nội dung; tab Trải nghiệm chia 2 cột chat | bảng workflow trực tiếp */
+:root{
+  --bg:#f3f5f7; --surface:#ffffff; --surface2:#e9eef2; --ink:#16212b; --muted:#56636f; --line:#d8e0e7;
+  --leaf:#1f5f73; --leaf-ink:#ffffff; --carrot:#b5476b; --warn:#b7791f; --bad:#c0392b; --good:#2f7d55;
+  --b1:#e3eefa; --b2:#e3f2ef; --b3:#fbf0dc; --b4:#fae6ea;
+  --display:"Lexend",system-ui,sans-serif; --body:"Be Vietnam Pro",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1519; --surface:#172027; --surface2:#1f2c35; --ink:#e3ecf1; --muted:#9db0bc; --line:#2a3943;
+  --leaf:#6fc0d4; --leaf-ink:#0b1a20; --carrot:#ee86a8; --warn:#e2b04f; --bad:#ef7a6c; --good:#6cc797;
+  --b1:#172739; --b2:#16302c; --b3:#33291a; --b4:#381f27; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1519; --surface:#172027; --surface2:#1f2c35; --ink:#e3ecf1; --muted:#9db0bc; --line:#2a3943;
+  --leaf:#6fc0d4; --leaf-ink:#0b1a20; --carrot:#ee86a8; --warn:#e2b04f; --bad:#ef7a6c; --good:#6cc797;
+  --b1:#172739; --b2:#16302c; --b3:#33291a; --b4:#381f27; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.55;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:14px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0}
+h1{font-size:1.7rem;letter-spacing:-.01em}
+h1 small{display:block;font-family:var(--body);font-weight:500;font-size:.85rem;color:var(--muted);letter-spacing:0;margin-top:2px}
+h2{font-size:1.25rem;margin-bottom:10px}
+h3{font-size:1.02rem;margin-bottom:6px}
+.tag{display:inline-block;font-size:.72rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--surface2);color:var(--muted)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:18px}
+nav.tabs button{font:600 .92rem var(--body);background:none;border:0;color:var(--muted);padding:10px 14px;border-bottom:3px solid transparent;cursor:pointer;white-space:nowrap}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--leaf)}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--carrot);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.muted{color:var(--muted)}
+dl.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0}
+dl.kv dt{font-weight:600;color:var(--muted);font-size:.85rem;padding-top:1px}
+dl.kv dd{margin:0}
+ul.tight{margin:4px 0 0;padding-left:18px}
+ul.tight li{margin:2px 0}
+.quote{border-left:3px solid var(--carrot);padding:4px 12px;margin:10px 0 0;font-style:italic;color:var(--muted)}
+.do-dont{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.do-dont div{padding:10px 12px;border-radius:8px;font-size:.9rem}
+.do{background:var(--b2)} .dont{background:var(--b4)}
+.do b,.dont b{display:block;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.journey{display:grid;grid-template-columns:repeat(4,minmax(220px,1fr));gap:12px;overflow-x:auto;padding-bottom:6px}
+.step{border-radius:12px;padding:14px;border:1px solid var(--line);background:var(--surface);min-width:0;display:flex;flex-direction:column;gap:8px}
+.step .stage{font-size:.72rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px;align-self:flex-start}
+.s1{background:var(--b1)} .s2{background:var(--b2)} .s3{background:var(--b3)} .s4{background:var(--b4)}
+.step h3{margin:0}
+.step p{margin:0;font-size:.9rem}
+.step .lbl{font-size:.75rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.emo{font-family:var(--display);font-weight:600}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:.88rem}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);background:var(--surface2)}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap}
+.wide{background:var(--b1)} .mid{background:var(--b3)} .narrow{background:var(--b4)}
+.transcript{display:flex;flex-direction:column;gap:8px;max-width:640px}
+.diagram{overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px}
+.diagram svg{display:block;min-width:960px;width:100%;height:auto}
+.rules{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.rules li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.rules li b{font-family:var(--display)}
+.play{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:860px){.play{grid-template-columns:1fr}.do-dont{grid-template-columns:1fr}}
+.phone{background:var(--surface);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;height:620px;min-width:0}
+.phone-head{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--leaf);color:var(--leaf-ink);display:grid;place-items:center;font-family:var(--display);font-weight:700}
+.phone-head b{font-family:var(--display)}
+.phone-head .st{font-size:.78rem;color:var(--good)}
+.phone-head .sp{flex:1}
+.msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.msg{max-width:82%;padding:9px 13px;border-radius:14px;white-space:pre-line;overflow-wrap:anywhere}
+.bot{background:var(--surface2);align-self:flex-start;border-bottom-left-radius:4px}
+.user{background:var(--leaf);color:var(--leaf-ink);align-self:flex-end;border-bottom-right-radius:4px}
+.sys{align-self:center;font-size:.78rem;color:var(--muted);text-align:center;max-width:90%}
+.meta{display:block;font-size:.7rem;font-weight:600;letter-spacing:.03em;color:var(--muted);margin-bottom:3px}
+.user .meta{color:inherit}
+.hide-meta .meta{display:none}
+.meta.err{color:var(--bad)}
+.typing{align-self:flex-start;color:var(--muted);font-size:.85rem;padding:4px 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 8px}
+.chips button{font:500 .85rem var(--body);border:1px solid var(--leaf);color:var(--leaf);background:transparent;border-radius:999px;padding:5px 12px;cursor:pointer}
+.chips button:hover{background:var(--surface2)}
+form.composer{display:flex;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+form.composer input{flex:1;min-width:0;font:inherit;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+.btn{font:600 .88rem var(--body);border:0;border-radius:10px;padding:9px 14px;cursor:pointer;background:var(--leaf);color:var(--leaf-ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.stepper{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.stepper li{display:grid;grid-template-columns:26px 1fr auto;gap:8px;align-items:center;padding:7px 10px;border-radius:8px;font-size:.88rem}
+.stepper .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-weight:700;background:var(--surface2);color:var(--muted)}
+.stepper li.done .n{background:var(--leaf);color:var(--leaf-ink)}
+.stepper li.now{background:var(--surface2);outline:1px solid var(--leaf)}
+.stepper li.now .n{background:var(--carrot);color:#fff}
+.stepper .stg{font-size:.7rem;color:var(--muted)}
+.counters{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.counter{border:1px solid var(--line);border-radius:10px;padding:10px}
+.counter .v{font-family:var(--display);font-size:1.5rem;font-variant-numeric:tabular-nums}
+.counter .v.hot{color:var(--bad)}
+.counter .k{font-size:.75rem;color:var(--muted)}
+.slots{font-size:.86rem}
+.slots div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dashed var(--line);padding:4px 0}
+.slots div span:last-child{font-weight:600;text-align:right}
+.log{font-family:ui-monospace,Consolas,monospace;font-size:.75rem;max-height:160px;overflow-y:auto;background:var(--bg);border-radius:8px;padding:8px;color:var(--muted);white-space:pre-wrap}
+.status{font-weight:600}
+.status.ok{color:var(--good)} .status.end{color:var(--bad)}
+label.switch{display:flex;gap:6px;align-items:center;font-size:.85rem;color:var(--muted);cursor:pointer}
+footer{margin-top:28px;font-size:.8rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Chatbot Giọt Hương Decant<small>Kịch bản chatbot cho dự án Marketing Automation · thương hiệu hư cấu: nước hoa chiết từ chai fullsize</small></h1>
+    <span class="tag">Phễu: Nhận biết → Quan tâm → Cân nhắc → Chuyển đổi</span>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Các phần">
+    <button role="tab" data-tab="trai-nghiem" aria-selected="true">Trải nghiệm chatbot</button>
+    <button role="tab" data-tab="persona" aria-selected="false">Persona</button>
+    <button role="tab" data-tab="hanh-trinh" aria-selected="false">Hành trình</button>
+    <button role="tab" data-tab="kich-ban" aria-selected="false">Kịch bản 6 lượt</button>
+    <button role="tab" data-tab="workflow" aria-selected="false">Workflow</button>
+  </nav>
+
+  <!-- ===== TRẢI NGHIỆM ===== -->
+  <section id="trai-nghiem" role="tabpanel">
+    <div class="tools">
+      <button class="btn" id="btnHappy">▶ Chạy đường suôn sẻ</button>
+      <button class="btn ghost" id="btnFail">▶ Chạy nhánh không khớp</button>
+      <button class="btn ghost" id="btnSilent" title="Giả lập khách không trả lời">Giả lập khách im lặng</button>
+      <button class="btn ghost" id="btnReset">Bắt đầu lại</button>
+      <label class="switch"><input type="checkbox" id="metaToggle" checked> Hiện nhãn workflow trên tin nhắn</label>
+    </div>
+    <div class="play">
+      <div class="phone">
+        <div class="phone-head">
+          <div class="avatar">G</div>
+          <div><b>Giọt · Giọt Hương Decant</b><div class="st" id="botStatus">Đang trực tuyến</div></div>
+          <div class="sp"></div>
+        </div>
+        <div class="msgs" id="msgs" aria-live="polite"></div>
+        <div class="chips" id="chips"></div>
+        <form class="composer" id="composer">
+          <input id="inp" autocomplete="off" placeholder="Nhập tin nhắn… (gõ “gặp nhân viên” bất cứ lúc nào)" aria-label="Tin nhắn">
+          <button class="btn" type="submit">Gửi</button>
+        </form>
+      </div>
+      <aside class="panel">
+        <div class="card">
+          <h3>Workflow đang chạy</h3>
+          <ol class="stepper" id="stepper"></ol>
+        </div>
+        <div class="card">
+          <h3>Bộ đếm nhánh không khớp</h3>
+          <div class="counters">
+            <div class="counter"><div class="v" id="cMiss">0</div><div class="k">Lỗi ở câu đang hỏi (tối đa 2 lần nhắc)</div></div>
+            <div class="counter"><div class="v" id="cConsec">0</div><div class="k">Lỗi liên tiếp toàn cuộc (3 là chuyển người)</div></div>
+          </div>
+          <p style="margin:10px 0 0" class="muted">Trạng thái: <span class="status ok" id="stateText">Đang hỏi</span></p>
+        </div>
+        <div class="card slots">
+          <h3>Thông tin đã thu thập</h3>
+          <div id="slots"></div>
+        </div>
+        <div class="card">
+          <h3>Nhật ký sự kiện</h3>
+          <div class="log" id="log"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== PERSONA ===== -->
+  <section id="persona" role="tabpanel" hidden>
+    <div class="grid2">
+      <div class="card">
+        <span class="tag">Persona người dùng</span>
+        <h2 style="margin-top:8px">Minh Khoa, 23 tuổi</h2>
+        <dl class="kv">
+          <dt>Công việc</dt><dd>Nhân viên kinh doanh mới đi làm năm đầu, Đà Nẵng. Gặp khách hằng ngày.</dd>
+          <dt>Sống</dt><dd>Ở trọ cùng bạn, đang hẹn hò, hay đi cà phê và tiệc cuối tuần.</dd>
+          <dt>Thu nhập</dt><dd>Khoảng 11 triệu/tháng; sẵn sàng chi 100–250 nghìn cho mùi hương mỗi tháng.</dd>
+          <dt>Kênh dùng</dt><dd>TikTok, YouTube review nước hoa, Facebook Messenger; xem video giờ nghỉ trưa.</dd>
+          <dt>Mục tiêu</dt><dd>Có mùi hương chính hãng để tự tin khi gặp khách và đi hẹn hò, không phải bỏ 3–4 triệu mua cả chai.</dd>
+          <dt>Nỗi đau</dt><dd>
+            <ul class="tight">
+              <li>Sợ chiết giả, chiết pha cồn, mùi bay sau 1 giờ.</li>
+              <li>Không biết mình hợp mùi gì, ngại mua nhầm.</li>
+              <li>Hỏi shop thì bị tư vấn dài, toàn thuật ngữ nốt hương.</li>
+            </ul>
+          </dd>
+          <dt>Rào cản mua</dt><dd>Lòng tin vào nguồn gốc, sợ ống chiết rò rỉ khi giao, chưa chắc nên lấy bao nhiêu ml.</dd>
+        </dl>
+        <p class="quote">“Cho mình mùi thật, đủ xài thử một tháng, đừng bắt mình học thuộc nốt hương.”</p>
+      </div>
+      <div class="card">
+        <span class="tag">Persona hệ thống</span>
+        <h2 style="margin-top:8px">Giọt, trợ lý của Giọt Hương Decant</h2>
+        <dl class="kv">
+          <dt>Vai</dt><dd>Người bạn sành mùi: nói về nước hoa bằng cảm giác và hoàn cảnh dùng, không khoe thuật ngữ.</dd>
+          <dt>Xưng hô</dt><dd>Xưng “mình”, gọi “bạn”. Không dùng “quý khách”, không gọi “anh/chị” khi chưa biết.</dd>
+          <dt>Giọng</dt><dd>Trẻ, gọn, tự tin. Mỗi tin nhắn tối đa 3 câu và đúng 1 câu hỏi. Tối đa 1 emoji 💧.</dd>
+          <dt>Giá trị thương hiệu</dt><dd>Thật (chiết từ chai fullsize có hoá đơn), minh bạch (tem ngày chiết, video từng mẻ), vừa túi (thử trước, mua ít). Mỗi câu trả lời nhắc được ít nhất một điều.</dd>
+          <dt>Giới hạn</dt><dd>
+            <ul class="tight">
+              <li>Không bịa giá, khuyến mãi hay mùi ngoài danh mục.</li>
+              <li>Không hứa độ lưu hương cố định, vì còn tuỳ da và thời tiết.</li>
+              <li>Không chê thương hiệu hay cửa hàng khác.</li>
+              <li>Không hỏi số thẻ, mật khẩu hay mã OTP; không chắc thì chuyển nhân viên thật.</li>
+            </ul>
+          </dd>
+        </dl>
+        <div class="do-dont">
+          <div class="do"><b>Nên nói</b>Mùi Cam Bergamot & Trà Xanh sạch, sáng, hợp đi làm. Bạn lấy ống 5ml dùng khoảng một tháng nhé?</div>
+          <div class="dont"><b>Không nói</b>Sản phẩm có top note bergamot, heart note neroli, base note musk, lưu hương 12 tiếng đảm bảo 100%.</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Danh mục chatbot được phép nói (dữ liệu hư cấu cho bài tập)</h3>
+      <div class="tbl-wrap" style="border:0">
+        <table style="min-width:560px">
+          <thead><tr><th>Nhóm mùi</th><th>Mùi</th><th>Hợp với</th></tr></thead>
+          <tbody>
+            <tr><td>Tươi mát</td><td>Cam Bergamot & Trà Xanh</td><td>Đi học, đi làm, ngày nóng</td></tr>
+            <tr><td>Ngọt ấm</td><td>Vani & Hổ Phách</td><td>Hẹn hò, buổi tối, trời mát</td></tr>
+            <tr><td>Gỗ sang</td><td>Tuyết Tùng & Xạ Hương</td><td>Gặp đối tác, sự kiện, làm quà</td></tr>
+          </tbody>
+        </table>
+        <table style="min-width:560px;margin-top:8px">
+          <thead><tr><th>Dung tích</th><th>Dùng được</th><th>Giá</th></tr></thead>
+          <tbody>
+            <tr><td>Ống 2ml</td><td>khoảng 30 lần xịt, thử mùi 1 tuần</td><td>59.000đ</td></tr>
+            <tr><td>Ống 5ml</td><td>khoảng 75 lần xịt, dùng 1 tháng</td><td>129.000đ</td></tr>
+            <tr><td>Ống 10ml</td><td>khoảng 150 lần xịt, dùng 2 tháng, có hộp</td><td>229.000đ</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="muted" style="margin:8px 0 0">Chiết bằng xi lanh vô trùng vào ống thuỷ tinh có vòi xịt, không pha thêm. Mỗi ống dán tem ngày chiết. Mua kèm ống thử 2ml mùi khác: 29.000đ. Giao tận nơi 20.000đ, miễn phí cho đơn từ 200.000đ; tự lấy tại tiệm không mất phí.</p>
+    </div>
+  </section>
+
+  <!-- ===== HÀNH TRÌNH ===== -->
+  <section id="hanh-trinh" role="tabpanel" hidden>
+    <h2>Hành trình 4 chặng của Minh Khoa</h2>
+    <p class="muted" style="margin-top:0">Mỗi chặng gắn với một giai đoạn phễu. Chatbot hỏi rộng ở đầu phễu để khách tự nói nhu cầu, hỏi hẹp dần khi tới gần lúc chốt đơn.</p>
+    <div class="journey">
+      <div class="step">
+        <span class="stage s1">Nhận biết · hỏi rộng</span>
+        <h3>1. Thấy quảng cáo</h3>
+        <div><div class="lbl">Hành động</div><p>Giờ trưa xem TikTok “Thơm như chai 3 triệu, chỉ từ 59 nghìn”, bấm “Nhắn tin”.</p></div>
+        <div><div class="lbl">Suy nghĩ</div><p>“Rẻ vậy, có phải hàng thật không?”</p></div>
+        <div><div class="lbl">Cảm xúc</div><p class="emo">Tò mò, nghi ngờ</p></div>
+        <div><div class="lbl">Chatbot làm gì</div><p>Chào, giới thiệu ngắn, hỏi mở khách dùng nước hoa cho dịp gì (lượt 1).</p></div>
+      </div>
+      <div class="step">
+        <span class="stage s2">Quan tâm · hỏi vừa</span>
+        <h3>2. Hỏi nguồn gốc và mùi</h3>
+        <div><div class="lbl">Hành động</div><p>Hỏi chiết có thật không, kể muốn mùi để đi làm gặp khách.</p></div>
+        <div><div class="lbl">Suy nghĩ</div><p>“Mình hợp mùi nào nhỉ?”</p></div>
+        <div><div class="lbl">Cảm xúc</div><p class="emo">Bớt lo, bắt đầu tin</p></div>
+        <div><div class="lbl">Chatbot làm gì</div><p>Trả lời nguồn gốc, hỏi khách thích nhóm mùi nào (lượt 2).</p></div>
+      </div>
+      <div class="step">
+        <span class="stage s3">Cân nhắc · hỏi hẹp dần</span>
+        <h3>3. Chọn dung tích</h3>
+        <div><div class="lbl">Hành động</div><p>So 2ml, 5ml, 10ml, chọn 5ml; lấy thêm ống thử mùi khác cho buổi hẹn.</p></div>
+        <div><div class="lbl">Suy nghĩ</div><p>“129 nghìn dùng một tháng, hợp lý.”</p></div>
+        <div><div class="lbl">Cảm xúc</div><p class="emo">Hào hứng</p></div>
+        <div><div class="lbl">Chatbot làm gì</div><p>Đưa dung tích gợi ý kèm giá (lượt 3), mời mua kèm ống thử (lượt 4).</p></div>
+      </div>
+      <div class="step">
+        <span class="stage s4">Chuyển đổi · hỏi hẹp nhất</span>
+        <h3>4. Đặt và thanh toán</h3>
+        <div><div class="lbl">Hành động</div><p>Chọn giao tận nơi, trả tiền mặt khi nhận, nhận tin xác nhận đơn.</p></div>
+        <div><div class="lbl">Suy nghĩ</div><p>“Nhận hàng kiểm tra tem rồi mới trả, yên tâm.”</p></div>
+        <div><div class="lbl">Cảm xúc</div><p class="emo">Yên tâm</p></div>
+        <div><div class="lbl">Chatbot làm gì</div><p>Hỏi cách nhận hàng (lượt 5), cách trả tiền (lượt 6), tóm tắt đơn và mẹo xịt.</p></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Sau hội thoại: tự động hoá marketing nối tiếp</h3>
+      <ul class="tight">
+        <li><b>Đặt đơn thành công:</b> gắn nhãn “Khách mới · nhóm Tươi mát · 5ml”, gửi mẹo xịt (cổ tay, sau gáy, không chà), xin đánh giá sau 5 ngày.</li>
+        <li><b>Mua ống thử 2ml:</b> sau 7 ngày hỏi khách thích mùi nào hơn, gợi ý lên ống 10ml của mùi đó.</li>
+        <li><b>Sau 25 ngày với ống 5ml:</b> nhắc “ống sắp hết” kèm ưu đãi mua lại.</li>
+        <li><b>Bỏ dở ở chặng Cân nhắc:</b> sau 24h gửi 1 tin kèm video chiết mẻ mới nhất.</li>
+        <li><b>Chuyển nhân viên:</b> tạo phiếu hỗ trợ kèm toàn bộ hội thoại để nhân viên không hỏi lại từ đầu.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== KỊCH BẢN ===== -->
+  <section id="kich-ban" role="tabpanel" hidden>
+    <h2>Kịch bản mẫu: 6 lượt theo đường suôn sẻ nhất</h2>
+    <p class="muted" style="margin-top:0">Mỗi lượt bot chỉ hỏi một câu. Độ rộng của câu hỏi giảm dần theo giai đoạn phễu.</p>
+    <div class="grid2" style="align-items:start">
+      <div class="card"><h3>Hội thoại mẫu</h3><div class="transcript" id="transcript"></div></div>
+      <div class="card">
+        <h3>Vì sao hỏi rộng hay hẹp</h3>
+        <ul class="tight">
+          <li><span class="pill wide">Rộng</span> Lượt 1: khách vừa thấy quảng cáo, chưa biết họ cần gì. Câu mở để khách tự nói hoàn cảnh dùng (đi làm, hẹn hò, làm quà).</li>
+          <li><span class="pill mid">Vừa</span> Lượt 2–3: đã biết hoàn cảnh, hỏi nhóm mùi rồi đưa 3 dung tích có gợi ý sẵn.</li>
+          <li><span class="pill narrow">Hẹp</span> Lượt 4–6: hỏi có/không hoặc hai lựa chọn, có nút bấm, để chốt nhanh và giảm bỏ dở.</li>
+        </ul>
+        <h3 style="margin-top:14px">Nguyên tắc viết câu</h3>
+        <ul class="tight">
+          <li>Câu xác nhận ngắn trước, câu hỏi tiếp theo đặt cuối tin nhắn.</li>
+          <li>Nhắc lại thông tin khách vừa cho (“mùi tươi mát”, “ống 5ml”) để khách thấy được lắng nghe.</li>
+          <li>Tả mùi bằng cảm giác và hoàn cảnh (sạch, ấm, sang; đi làm, hẹn hò), không dùng thuật ngữ nốt hương.</li>
+          <li>Đổi dung tích ra số lần xịt và số ngày dùng để khách dễ hình dung.</li>
+        </ul>
+      </div>
+    </div>
+    <h2 style="margin-top:22px">Bảng kịch bản và nhánh không khớp</h2>
+    <div class="tbl-wrap"><table id="scriptTable">
+      <thead><tr><th>Lượt</th><th>Giai đoạn</th><th>Câu hỏi</th><th>Bot hỏi</th><th>Khách trả lời mẫu</th><th>Nhắc lần 1 (xin lỗi + rút gọn)</th><th>Nhắc lần 2 (thêm lựa chọn / ví dụ)</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <!-- ===== WORKFLOW ===== -->
+  <section id="workflow" role="tabpanel" hidden>
+    <h2>Luồng cấp cao</h2>
+    <div class="diagram" id="diagram"></div>
+    <h2 style="margin-top:22px">Quy tắc xử lý</h2>
+    <ol class="rules">
+      <li><b>Khớp ý:</b> lưu thông tin vào biến (slot), xác nhận ngắn, đặt câu hỏi của nút tiếp theo. Bộ đếm lỗi trở về 0.</li>
+      <li><b>Không khớp lần 1:</b> “Xin lỗi, mình chưa rõ ý bạn.” kèm câu hỏi rút gọn của chính nút đó.</li>
+      <li><b>Không khớp lần 2:</b> hỏi lại kèm lựa chọn hoặc ví dụ cụ thể, hiện nút trả lời nhanh.</li>
+      <li><b>Không khớp lần 3 tại một nút</b> (đã nhắc hai lần không thành) <b>hoặc 3 lỗi liên tiếp trong cuộc</b> (tính cả lần khách im lặng): kết thúc, chỉ cách gặp nhân viên thật.</li>
+      <li><b>Lối thoát toàn cục:</b> ở bất kỳ nút nào, khách gõ “gặp nhân viên”, “người thật”, “tư vấn viên” thì chuyển ngay. Gõ “bắt đầu lại” để quay về lượt 1.</li>
+      <li><b>Câu hỏi phụ:</b> khách hỏi giá, hỏi hàng thật hay giả, hoặc hỏi lưu hương bao lâu ở lượt 1–2 thì bot trả lời ngắn rồi hỏi lại câu đang dở. Lượt này không tính lỗi.</li>
+    </ol>
+    <h2 style="margin-top:22px">Bảng trạng thái</h2>
+    <div class="tbl-wrap"><table id="stateTable">
+      <thead><tr><th>Nút</th><th>Biến lưu</th><th>Ý khách được chấp nhận</th><th>Khớp thì sang</th><th>Không khớp</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <footer>Giọt Hương Decant là thương hiệu hư cấu dựng cho bài tập. Chatbot chạy hoàn toàn trong trình duyệt bằng luật so khớp từ khoá, không gửi hay lưu tin nhắn ở đâu cả.</footer>
+</div>
+
+<script>
+(function(){
+/* ---------- Tiện ích ---------- */
+const $ = s => document.querySelector(s);
+const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/đ/g,"d").replace(/\s+/g," ").trim();
+const has = (t, re) => re.test(t);
+const money = n => n.toLocaleString("vi-VN") + "đ";
+
+const SCENTS = {
+  tuoi:{group:"Tươi mát", name:"Cam Bergamot & Trà Xanh", feel:"sạch, sáng, dễ chịu cả ngày"},
+  ngot:{group:"Ngọt ấm", name:"Vani & Hổ Phách", feel:"ấm, ngọt nhẹ, gần gũi"},
+  go:{group:"Gỗ sang", name:"Tuyết Tùng & Xạ Hương", feel:"trầm, chững chạc, sang"}
+};
+const SIZES = {
+  s2:{name:"Ống 2ml", note:"khoảng 30 lần xịt", price:59000},
+  s5:{name:"Ống 5ml", note:"khoảng 75 lần xịt", price:129000},
+  s10:{name:"Ống 10ml", note:"khoảng 150 lần xịt, có hộp", price:229000}
+};
+const ADDON = 29000, SHIP = 20000, FREE_FROM = 200000;
+const MOTIVE_SCENT = {"Đi học, đi làm hằng ngày":"tuoi","Hẹn hò, đi tiệc":"ngot","Làm quà tặng":"go","Gặp đối tác, sự kiện":"go"};
+const recScent = d => MOTIVE_SCENT[d.motive] || "tuoi";
+const recSize = d => d.motive==="Làm quà tặng" ? "s10" : "s5";
+const otherScent = d => ({tuoi:"ngot",ngot:"tuoi",go:"tuoi"})[d.scent||"tuoi"];
+const HOTLINE = "0900 000 000 (số minh hoạ, 9h–22h)";
+const STAGES = {1:"Nhận biết",2:"Quan tâm",3:"Cân nhắc",4:"Chuyển đổi"};
+
+/* ---------- Định nghĩa workflow: 6 nút ---------- */
+const NODES = [
+  { id:"N1", slot:"motive", label:"Hoàn cảnh dùng", stage:1, breadth:"Rộng",
+    ask:()=>"Chào bạn, mình là Giọt của Giọt Hương Decant 💧\nBạn đang tìm nước hoa để dùng trong dịp nào vậy?",
+    short:()=>"Bạn định xịt nước hoa khi nào nhỉ?",
+    re2:()=>"Bạn kể ngắn thôi cũng được, ví dụ: “đi làm hằng ngày”, “đi hẹn hò” hay “mua tặng bạn”. Bạn dùng vào dịp nào?",
+    chips:()=>["Đi làm hằng ngày","Hẹn hò, đi tiệc","Làm quà tặng"], chipsAlways:false,
+    accepts:"Câu trả lời mở bất kỳ có nội dung (từ 2 từ). Phân loại: hằng ngày / hẹn hò / làm quà / gặp đối tác / khác.",
+    sample:"Mình mới đi làm, cần mùi gì đó dễ chịu để gặp khách hằng ngày.",
+    parse(t){
+      const words = t.split(" ").filter(w=>/[a-z]/.test(w));
+      if (has(t,/(qua tang|lam qua|mon qua|\btang\b|sinh nhat|ky niem|valentine|tang ban|tang nguoi)/)) return {ok:true,value:"Làm quà tặng",ack:"Nước hoa là món quà dễ ghi điểm. Ống 10ml của Giọt Hương có hộp, tặng rất gọn."};
+      if (has(t,/(hen ho|\bhen\b|di tiec|\btiec\b|party|buoi toi|crush|nguoi yeu|ban gai|ban trai|di choi)/)) return {ok:true,value:"Hẹn hò, đi tiệc",ack:"Buổi hẹn mà có mùi hợp thì tự tin hẳn. Giọt sẽ gợi ý mùi đủ cuốn mà không gắt."};
+      if (has(t,/(doi tac|su kien|hop|thuyet trinh|phong van|cong so)/)) return {ok:true,value:"Gặp đối tác, sự kiện",ack:"Gặp đối tác thì mùi nên chững chạc, vừa đủ. Giọt có lựa chọn hợp cho bạn."};
+      if (has(t,/(di lam|di hoc|hang ngay|moi ngay|hang ngay|gap khach|van phong|daily|thuong ngay)/)) return {ok:true,value:"Đi học, đi làm hằng ngày",ack:"Dùng hằng ngày thì cần mùi sạch, dễ chịu, không làm người bên cạnh khó chịu."};
+      if (words.length>=2 && !has(t,/^(khong biet|ko biet|k biet|hong biet|chua biet)$/)) return {ok:true,value:"Khác: "+t.slice(0,40),ack:"Cảm ơn bạn đã chia sẻ. Giọt sẽ tìm mùi hợp với bạn nhất."};
+      return {ok:false};
+    }},
+  { id:"N2", slot:"scent", label:"Nhóm mùi", stage:2, breadth:"Vừa",
+    ask:()=>"Bạn thích mùi theo hướng nào: tươi mát, ngọt ấm hay gỗ sang?",
+    short:()=>"Bạn thích mùi tươi, mùi ngọt hay mùi gỗ?",
+    re2:d=>`Bạn chọn một nhóm bên dưới nhé. Nếu chưa biết, cứ gõ “gợi ý”, Giọt sẽ chọn ${SCENTS[recScent(d)].name} cho bạn. Bạn thích nhóm nào?`,
+    chips:()=>["Tươi mát","Ngọt ấm","Gỗ sang","Giọt gợi ý giúp"], chipsAlways:false,
+    accepts:"tươi / mát / cam / chanh / trà / biển; ngọt / ấm / vani / hổ phách / kẹo; gỗ / trầm / xạ hương / tuyết tùng / sang; “gợi ý”, “chưa biết” = chọn theo hoàn cảnh dùng.",
+    sample:"Chắc là tươi mát, mình không thích mùi ngọt quá.",
+    parse(t,d){
+      let k=null;
+      if (has(t,/(tuoi|\bmat\b|cam|chanh|\btra\b|bien|sach|nhe nhang|the thao)/)) k="tuoi";
+      else if (has(t,/(\bgo\b|tram|xa huong|tuyet tung|dan huong|\bsang\b|lich lam|chung chac)/)) k="go";
+      else if (has(t,/(ngot|\bam\b|vani|vanilla|ho phach|\bkeo\b|quyen ru|cuon)/)) k="ngot";
+      else if (has(t,/(goi y|chua biet|khong biet|ko biet|tuy|sao cung duoc|gi cung duoc|ban chon)/)) k=recScent(d);
+      if (!k) return {ok:false};
+      const s=SCENTS[k];
+      return {ok:true,value:k,ack:`Vậy là nhóm ${s.group}: mùi ${s.name}, ${s.feel}.`};
+    }},
+  { id:"N3", slot:"size", label:"Dung tích", stage:3, breadth:"Vừa",
+    ask:d=>{const r=SIZES[recSize(d)];return `Mùi ${SCENTS[d.scent||"tuoi"].name} có 3 dung tích:\n• Ống 2ml (khoảng 30 lần xịt, thử 1 tuần): 59.000đ\n• Ống 5ml (khoảng 75 lần xịt, dùng 1 tháng): 129.000đ\n• Ống 10ml (khoảng 150 lần xịt, có hộp): 229.000đ\nVới nhu cầu của bạn, ${r.name} là hợp nhất. Bạn chọn loại nào?`;},
+    short:d=>`Bạn lấy ${SIZES[recSize(d)].name} như Giọt gợi ý, hay dung tích khác?`,
+    re2:()=>"Bạn bấm một nút bên dưới hoặc gõ “2ml”, “5ml” hay “10ml”. Bạn chọn loại nào?",
+    chips:d=>{const r=recSize(d);return ["s2","s5","s10"].map(k=>SIZES[k].name+(k===r?" (gợi ý)":""));}, chipsAlways:true,
+    accepts:"2ml / 59; 5ml / 129; 10ml / 229; hoặc đồng ý gợi ý (“ok”, “được”, “loại đó”).",
+    sample:"Lấy ống 5ml nhé.",
+    parse(t,d){
+      let k=null;
+      if (has(t,/(\b10\b|10ml|229|ong lon|co hop)/)) k="s10";
+      else if (has(t,/(\b5\b|5ml|129|1 thang|mot thang)/)) k="s5";
+      else if (has(t,/(\b2\b|2ml|\b59\b|thu mui|ong nho|ong thu)/)) k="s2";
+      else if (has(t,/^(ok|oke|okay|duoc|dong y|u|uh|um|vang|da|chot|loai do|lay loai do|theo goi y|nhu goi y)\b/)) k=recSize(d);
+      if (!k) return {ok:false};
+      return {ok:true,value:k,ack:`Chốt ${SIZES[k].name}, ${money(SIZES[k].price)}.`};
+    }},
+  { id:"N4", slot:"addon", label:"Mua kèm ống thử", stage:3, breadth:"Hẹp",
+    ask:d=>`Bạn có muốn lấy thêm ống thử 2ml mùi ${SCENTS[otherScent(d)].name} giá 29.000đ để đổi mùi không?`,
+    short:()=>"Có lấy thêm ống thử 29.000đ không bạn?",
+    re2:d=>`Ống thử 2ml xịt được khoảng 30 lần, giá mua kèm chỉ 29.000đ thay vì 59.000đ. Mùi ${SCENTS[otherScent(d)].name} hợp ${otherScent(d)==="ngot"?"buổi tối, hẹn hò":"ban ngày, đi làm"}. Bạn có lấy không?`,
+    chips:()=>["Có, lấy thêm","Không cần"], chipsAlways:true,
+    accepts:"có / lấy / ok / được; không / không cần / thôi.",
+    sample:"Có, lấy thêm cho buổi hẹn.",
+    parse(t,d){
+      if (has(t,/(khong|\bko\b|\bk\b|thoi|khoi)/)) return {ok:true,value:"Không mua kèm",ack:"Không sao, ống chính đã đủ dùng rồi."};
+      if (has(t,/(\bco\b|lay|dong y|duoc|ok|oke|vang|\bu\b|\bda\b|them)/)) return {ok:true,value:"Có ống thử 2ml "+SCENTS[otherScent(d)].name,ack:"Thêm ống thử, vậy là bạn có hai mùi để đổi theo dịp."};
+      return {ok:false};
+    }},
+  { id:"N5", slot:"delivery", label:"Cách nhận hàng", stage:4, breadth:"Hẹp",
+    ask:()=>"Giao tận nơi hay bạn tự đến tiệm lấy?",
+    short:()=>"Giao tận nơi hay tự lấy ạ?",
+    re2:d=>{const tot=subtotal(d);return `Giao tận nơi ${tot>=FREE_FROM?"miễn phí với đơn của bạn":"phí "+money(SHIP)}, ống được bọc chống sốc và khoá vòi xịt; tự lấy tại tiệm Giọt Hương (địa chỉ minh hoạ) thì không mất phí. Bạn chọn cách nào?`;},
+    chips:()=>["Giao tận nơi","Tự đến lấy"], chipsAlways:true,
+    accepts:"giao / tận nơi / ship; lấy / ghé / tự đến / tiệm.",
+    sample:"Giao tận nơi giúp mình.",
+    parse(t,d){
+      if (has(t,/(tu lay|tu den|ghe|qua lay|den lay|tiem|cua hang|lay o)/)) return {ok:true,value:"Tự lấy tại tiệm",ack:"Giọt sẽ để sẵn túi có tên bạn ở quầy."};
+      if (has(t,/(giao|tan noi|tan nha|ship|van chuyen|ve nha)/)) return {ok:true,value:"Giao tận nơi",ack: subtotal(d)>=FREE_FROM?"Giao tận nơi, miễn phí với đơn của bạn.":`Giao tận nơi, phí ${money(SHIP)}.`};
+      return {ok:false};
+    }},
+  { id:"N6", slot:"pay", label:"Thanh toán", stage:4, breadth:"Hẹp",
+    ask:()=>"Bạn thanh toán bằng chuyển khoản hay tiền mặt khi nhận hàng?",
+    short:()=>"Chuyển khoản hay tiền mặt ạ?",
+    re2:()=>"Bạn có thể quét mã QR chuyển khoản sau khi Giọt gửi xác nhận, hoặc kiểm tra tem rồi trả tiền mặt lúc nhận hàng. Bạn chọn cách nào?",
+    chips:()=>["Chuyển khoản","Tiền mặt khi nhận"], chipsAlways:true,
+    accepts:"chuyển khoản / CK / QR / ví điện tử; tiền mặt / COD / khi nhận.",
+    sample:"Tiền mặt khi nhận nhé.",
+    parse(t){
+      if (has(t,/(tien mat|cod|khi nhan|luc nhan|tra sau)/)) return {ok:true,value:"Tiền mặt khi nhận",ack:"Bạn kiểm tra tem ngày chiết rồi trả tiền mặt nhé."};
+      if (has(t,/(chuyen khoan|\bck\b|qr|ngan hang|bank|vi dien tu|momo|zalopay)/)) return {ok:true,value:"Chuyển khoản (QR gửi kèm xác nhận)",ack:"Giọt sẽ gửi mã QR kèm tin xác nhận đơn."};
+      return {ok:false};
+    }}
+];
+function subtotal(d){ return (SIZES[d.size||"s5"].price) + (d.addon && d.addon!=="Không mua kèm" ? ADDON : 0); }
+
+/* ---------- Trạng thái ---------- */
+let S, busy=false, autoplay=false;
+function fresh(){ return {i:0, miss:0, consec:0, data:{}, ended:false, outcome:null}; }
+
+/* ---------- Giao diện chat ---------- */
+const msgs=$("#msgs"), chipsEl=$("#chips"), inp=$("#inp");
+function addMsg(who, text, meta, metaErr){
+  const d=document.createElement("div");
+  d.className="msg "+who;
+  if (meta){const m=document.createElement("span");m.className="meta"+(metaErr?" err":"");m.textContent=meta;d.appendChild(m);}
+  d.appendChild(document.createTextNode(text));
+  msgs.appendChild(d); msgs.scrollTop=msgs.scrollHeight;
+}
+function sys(text){const d=document.createElement("div");d.className="sys";d.textContent=text;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;}
+function log(s){const l=$("#log");const ts=new Date().toLocaleTimeString("vi-VN");l.textContent+=`[${ts}] ${s}\n`;l.scrollTop=l.scrollHeight;}
+function setChips(list){
+  chipsEl.innerHTML="";
+  (list||[]).forEach(c=>{const b=document.createElement("button");b.type="button";b.textContent=c;b.onclick=()=>{if(!autoplay)userSay(c.replace(" (gợi ý)",""));};chipsEl.appendChild(b);});
+}
+function botSay(text, meta, metaErr, chips){
+  return new Promise(res=>{
+    busy=true;
+    const t=document.createElement("div");t.className="typing";t.textContent="Giọt đang soạn…";msgs.appendChild(t);msgs.scrollTop=msgs.scrollHeight;
+    setTimeout(()=>{t.remove();addMsg("bot",text,meta,metaErr);setChips(chips);busy=false;render();res();}, autoplay?420:550);
+  });
+}
+const metaFor = n => `${n.id} · ${STAGES[n.stage]} · hỏi ${n.breadth.toLowerCase()}`;
+
+/* ---------- Bộ máy hội thoại ---------- */
+async function askCurrent(){
+  const n=NODES[S.i];
+  log(`Vào ${n.id} (${n.label})`);
+  await botSay(n.ask(S.data), metaFor(n), false, n.chipsAlways?n.chips(S.data):[]);
+}
+async function handoff(reason){
+  S.ended=true; S.outcome="handoff";
+  log(`KẾT THÚC → chuyển nhân viên (${reason})`);
+  const lead = reason==="khách yêu cầu gặp người" ? "Được bạn ơi, Giọt chuyển bạn sang nhân viên thật ngay nhé:" : "Xin lỗi bạn, Giọt chưa giúp được đúng ý. Để nhân viên thật hỗ trợ bạn nhé:";
+  await botSay(`${lead}\n• Gọi hotline ${HOTLINE}\n• Hoặc nhắn “gặp nhân viên” trên Fanpage Giọt Hương Decant, bạn được trả lời trong 15 phút.\nGiọt đã chuyển lại toàn bộ đoạn chat để bạn không phải kể lại.`, `Kết thúc · ${reason}`, true, []);
+  sys("Cuộc trò chuyện đã kết thúc. Gõ “bắt đầu lại” để thử lại.");
+}
+async function finish(ack){
+  S.ended=true; S.outcome="success";
+  const d=S.data, z=SIZES[d.size], sc=SCENTS[d.scent], sub=subtotal(d);
+  const ship = d.delivery==="Giao tận nơi" && sub<FREE_FROM ? SHIP : 0;
+  const code="GH"+Math.floor(1000+Math.random()*9000);
+  log(`KẾT THÚC → đặt đơn thành công ${code}`);
+  const addLine = d.addon!=="Không mua kèm" ? `\n• ${d.addon}: ${money(ADDON)}` : "";
+  await botSay(`${ack?ack+"\n":""}Xong rồi! Đơn ${code} của bạn:\n• ${z.name} mùi ${sc.name}: ${money(z.price)}${addLine}\n• ${d.delivery}${ship?" (+"+money(ship)+")":""}\n• ${d.pay}\nTổng: ${money(sub+ship)}. Mẹo nhỏ: xịt lên cổ tay và sau gáy, đừng chà để mùi giữ lâu hơn nhé 💧`, "Kết thúc · đặt đơn thành công", false, []);
+  sys("Đơn mô phỏng, không có giao dịch thật.");
+}
+async function onMiss(kind){
+  const n=NODES[S.i];
+  S.miss++; S.consec++;
+  log(`${kind} tại ${n.id}: lỗi nút ${S.miss}, liên tiếp ${S.consec}`);
+  render();
+  if (S.miss>=3) return handoff("hai lần nhắc không thành");
+  if (S.consec>=3) return handoff("3 lỗi liên tiếp");
+  if (S.miss===1) return botSay(`${kind==="Im lặng"?"Bạn còn đó không?":"Xin lỗi, mình chưa rõ ý bạn."} ${n.short(S.data)}`, `${n.id} · nhắc lần 1 (rút gọn)`, true, n.chipsAlways?n.chips(S.data):[]);
+  return botSay(n.re2(S.data), `${n.id} · nhắc lần 2 (thêm lựa chọn)`, true, n.chips(S.data));
+}
+async function handle(raw){
+  const t=norm(raw);
+  if (has(t,/(bat dau lai|lam lai|restart|choi lai)/)) return restart();
+  if (S.ended){ return botSay("Cuộc trò chuyện này đã kết thúc. Bạn gõ “bắt đầu lại” nếu muốn đặt từ đầu nhé.", "Đã kết thúc", true, ["Bắt đầu lại"]); }
+  if (has(t,/(nhan vien|nguoi that|tu van vien|gap nguoi|hotline|admin)/)) return handoff("khách yêu cầu gặp người");
+  const n=NODES[S.i];
+  if (S.i<2){
+    let side=null;
+    if (has(t,/(chinh hang|hang that|hang gia|\bfake\b|\bgia\b khong|pha loang|pha con|real|auth|nguon goc)/)) side="Giọt Hương chiết trực tiếp từ chai fullsize có hoá đơn, bằng xi lanh vô trùng, không pha thêm. Mỗi ống có tem ngày chiết và mỗi mẻ đều có video trên Fanpage.";
+    else if (has(t,/(bao nhieu tien|gia bao nhieu|gia the nao|bang gia|het bao nhieu)/)) side="Ống chiết từ 59.000đ (2ml) đến 229.000đ (10ml có hộp). Giọt sẽ gợi ý đúng dung tích ngay sau đây.";
+    else if (has(t,/(luu huong|giu mui|bao lau|bay mui|thom lau)/)) side="Thường giữ mùi 4–8 tiếng, tuỳ da và thời tiết. Mùi gỗ và ngọt ấm thường bám lâu hơn mùi tươi mát.";
+    if (side){
+      log(`Câu hỏi phụ (không tính lỗi)`);
+      await botSay(side, "Câu hỏi phụ · trả lời ngắn", false, []);
+      return botSay(S.i===0 ? "Cho Giọt hỏi thêm: bạn định dùng nước hoa trong dịp nào?" : n.ask(S.data), metaFor(n), false, n.chipsAlways?n.chips(S.data):[]);
+    }
+  }
+  if (!t) return onMiss("Không khớp");
+  const r=n.parse(t,S.data);
+  if (!r.ok) return onMiss("Không khớp");
+  S.data[n.slot]=r.value; S.miss=0; S.consec=0;
+  log(`Khớp ${n.id}: ${n.slot} = ${r.value}`);
+  S.i++;
+  if (S.i>=NODES.length) return finish(r.ack);
+  const nx=NODES[S.i];
+  log(`Vào ${nx.id} (${nx.label})`);
+  return botSay(r.ack+"\n"+nx.ask(S.data), metaFor(nx), false, nx.chipsAlways?nx.chips(S.data):[]);
+}
+async function userSay(text){
+  while (busy) await new Promise(r=>setTimeout(r,100));
+  addMsg("user", text||"(tin nhắn trống)");
+  await handle(text);
+}
+async function restart(){
+  S=fresh(); msgs.innerHTML=""; $("#log").textContent=""; setChips([]);
+  log("Khởi động phiên mới (khách bấm Nhắn tin từ quảng cáo TikTok)");
+  sys("Khách bấm “Nhắn tin” từ quảng cáo TikTok");
+  render(); await askCurrent();
+}
+
+/* ---------- Bảng điều khiển ---------- */
+function render(){
+  const st=$("#stepper"); st.innerHTML="";
+  NODES.forEach((n,k)=>{
+    const li=document.createElement("li");
+    const done = k<S.i || (S.outcome==="success");
+    li.className = done?"done":(k===S.i && !S.ended?"now":"");
+    li.innerHTML=`<span class="n">${done?"✓":k+1}</span><span>${n.label}<br><span class="stg">${STAGES[n.stage]} · hỏi ${n.breadth.toLowerCase()}</span></span><span class="stg">${n.id}</span>`;
+    st.appendChild(li);
+  });
+  const cm=$("#cMiss"), cc=$("#cConsec");
+  cm.textContent=S.miss; cc.textContent=S.consec;
+  cm.className="v"+(S.miss>=2?" hot":""); cc.className="v"+(S.consec>=2?" hot":"");
+  const stx=$("#stateText");
+  if (S.outcome==="success"){stx.textContent="Đặt đơn thành công";stx.className="status ok";}
+  else if (S.outcome==="handoff"){stx.textContent="Đã chuyển nhân viên thật";stx.className="status end";}
+  else if (S.i>=NODES.length){stx.textContent="Đang chốt đơn";stx.className="status ok";}
+  else {stx.textContent=`Đang hỏi ${NODES[S.i].id}`+(S.miss?` · đã nhắc ${S.miss} lần`:"");stx.className="status ok";}
+  $("#botStatus").textContent = S.ended ? "Phiên đã kết thúc" : "Đang trực tuyến";
+  const d=S.data, sl=$("#slots");
+  const rows=[["Hoàn cảnh dùng",d.motive],["Nhóm mùi",d.scent&&SCENTS[d.scent].group],["Dung tích",d.size&&SIZES[d.size].name],["Mua kèm",d.addon],["Nhận hàng",d.delivery],["Thanh toán",d.pay]];
+  sl.innerHTML=rows.map(([k,v])=>`<div><span class="muted">${k}</span><span>${v==null?"—":String(v).replace(/</g,"&lt;")}</span></div>`).join("");
+}
+
+/* ---------- Kịch bản tự chạy ---------- */
+const HAPPY = NODES.map(n=>n.sample);
+const FAIL = ["hmm", "???", "asdf"];
+async function play(list){
+  if (autoplay) return;
+  await restart(); autoplay=true; setDisabled(true);
+  for (const line of list){
+    await new Promise(r=>setTimeout(r,650));
+    addMsg("user", line); await handle(line);
+  }
+  autoplay=false; setDisabled(false);
+}
+function setDisabled(v){["#btnHappy","#btnFail","#btnSilent","#btnReset"].forEach(s=>$(s).disabled=v);inp.disabled=v;}
+
+$("#composer").addEventListener("submit",e=>{e.preventDefault();if(autoplay)return;const v=inp.value;inp.value="";userSay(v.trim());});
+$("#btnHappy").onclick=()=>play(HAPPY);
+$("#btnFail").onclick=()=>play(FAIL);
+$("#btnReset").onclick=()=>{if(!busy)restart();};
+$("#btnSilent").onclick=async()=>{ if(busy||S.ended)return; sys("Khách im lặng quá 60 giây"); await onMiss("Im lặng"); };
+$("#metaToggle").onchange=e=>msgs.classList.toggle("hide-meta",!e.target.checked);
+
+/* ---------- Tabs (định tuyến theo #) ---------- */
+const tabs=[...document.querySelectorAll("nav.tabs button")];
+function show(id){
+  if (!tabs.some(b=>b.dataset.tab===id)) id="trai-nghiem";
+  tabs.forEach(b=>b.setAttribute("aria-selected", String(b.dataset.tab===id)));
+  document.querySelectorAll("section[role=tabpanel]").forEach(s=>s.hidden = s.id!==id);
+}
+tabs.forEach(b=>b.onclick=()=>{ show(b.dataset.tab); try{ if(location.hash!=="#"+b.dataset.tab) location.hash=b.dataset.tab; }catch(e){} });
+window.addEventListener("hashchange",()=>show(location.hash.slice(1)));
+show(location.hash.slice(1));
+
+/* ---------- Sinh nội dung tab Kịch bản & Workflow từ cùng dữ liệu ---------- */
+(function buildDocs(){
+  const esc=s=>String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const tr=$("#transcript");
+  const sd={};
+  NODES.forEach((n,k)=>{
+    const b=document.createElement("div");b.className="msg bot";b.innerHTML=`<span class="meta">Lượt ${k+1} · ${STAGES[n.stage]} · hỏi ${n.breadth.toLowerCase()}</span>${esc(n.ask(sd))}`;tr.appendChild(b);
+    const u=document.createElement("div");u.className="msg user";u.textContent=n.sample;tr.appendChild(u);
+    const r=n.parse(norm(n.sample),sd); if(r.ok) sd[n.slot]=r.value;
+  });
+  const end=document.createElement("div");end.className="msg bot";end.innerHTML=`<span class="meta">Kết thúc · xác nhận đơn</span>Xong rồi! Ống 5ml Cam Bergamot & Trà Xanh, thêm ống thử 2ml Vani & Hổ Phách, giao tận nơi, tiền mặt khi nhận. Tổng 178.000đ (đã gồm 20.000đ phí giao) 💧`;tr.appendChild(end);
+
+  const sim={motive:"Đi học, đi làm hằng ngày",scent:"tuoi",size:"s5"};
+  const cls={"Rộng":"wide","Vừa":"mid","Hẹp":"narrow"};
+  $("#scriptTable tbody").innerHTML=NODES.map((n,k)=>`<tr><td><b>${k+1}</b></td><td>${STAGES[n.stage]}</td><td><span class="pill ${cls[n.breadth]}">${n.breadth}</span></td><td>${esc(n.ask(sim))}</td><td>${esc(n.sample)}</td><td>Xin lỗi, mình chưa rõ ý bạn. ${esc(n.short(sim))}</td><td>${esc(n.re2(sim))}<br><span class="muted">Nút: ${n.chips(sim).map(esc).join(" · ")}</span></td></tr>`).join("");
+  $("#stateTable tbody").innerHTML=NODES.map((n,k)=>`<tr><td><b>${n.id}</b> ${n.label}</td><td><code>${n.slot}</code></td><td>${esc(n.accepts)}</td><td>${k<NODES.length-1?NODES[k+1].id+" "+NODES[k+1].label:"Xác nhận đơn → Kết thúc"}</td><td>Nhắc 1 → Nhắc 2 → Chuyển nhân viên</td></tr>`).join("");
+
+  /* Sơ đồ SVG */
+  const W=1080,H=430, x0=120, gap=140, bw=118, bh=64, y=110;
+  const stageCols={1:[0],2:[1],3:[2,3],4:[4,5]};
+  const bandFill={1:"var(--b1)",2:"var(--b2)",3:"var(--b3)",4:"var(--b4)"};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sơ đồ luồng chatbot Giọt Hương Decant" font-family="Be Vietnam Pro, system-ui, sans-serif">
+  <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--muted)"/></marker>
+  <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--bad)"/></marker></defs>`;
+  for (const st in stageCols){
+    const c=stageCols[st], xs=x0+c[0]*gap-11, xe=x0+c[c.length-1]*gap+bw+11;
+    s+=`<rect x="${xs}" y="20" width="${xe-xs}" height="210" rx="10" fill="${bandFill[st]}"/>`;
+    s+=`<text x="${(xs+xe)/2}" y="44" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">${STAGES[st]}</text>`;
+    s+=`<text x="${(xs+xe)/2}" y="62" text-anchor="middle" font-size="11" fill="var(--muted)">${{1:"hỏi rộng",2:"hỏi vừa",3:"vừa → hẹp",4:"hỏi hẹp, có nút"}[st]}</text>`;
+  }
+  s+=`<circle cx="48" cy="${y+bh/2}" r="26" fill="var(--leaf)"/><text x="48" y="${y+bh/2-3}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--leaf-ink)">Quảng</text><text x="48" y="${y+bh/2+11}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--leaf-ink)">cáo</text>`;
+  s+=`<line x1="74" y1="${y+bh/2}" x2="${x0-2}" y2="${y+bh/2}" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>`;
+  NODES.forEach((n,k)=>{
+    const x=x0+k*gap;
+    s+=`<rect x="${x}" y="${y}" width="${bw}" height="${bh}" rx="10" fill="var(--surface)" stroke="var(--leaf)" stroke-width="1.5"/>`;
+    s+=`<text x="${x+bw/2}" y="${y+24}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--leaf)">${n.id}</text>`;
+    s+=`<text x="${x+bw/2}" y="${y+44}" text-anchor="middle" font-size="12" fill="var(--ink)">${n.label}</text>`;
+    s+=`<line x1="${x+bw}" y1="${y+bh/2}" x2="${x+gap-2}" y2="${y+bh/2}" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>`;
+    s+=`<text x="${x+bw+11}" y="${y+bh/2-6}" text-anchor="middle" font-size="9.5" fill="var(--muted)">khớp</text>`;
+    s+=`<line x1="${x+bw/2}" y1="${y+bh}" x2="${x+bw/2}" y2="262" stroke="var(--bad)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  });
+  const ex=x0+6*gap;
+  s+=`<rect x="${ex}" y="${y}" width="${W-ex-10}" height="${bh}" rx="32" fill="var(--leaf)"/><text x="${ex+(W-ex-10)/2}" y="${y+28}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--leaf-ink)">Xác nhận đơn</text><text x="${ex+(W-ex-10)/2}" y="${y+44}" text-anchor="middle" font-size="11" fill="var(--leaf-ink)">Kết thúc ✓</text>`;
+  const by=262, l=x0+bw/2, r=x0+5*gap+bw/2;
+  s+=`<line x1="${l}" y1="${by}" x2="${r}" y2="${by}" stroke="var(--bad)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+  s+=`<text x="${l+4}" y="${by-6}" font-size="11" fill="var(--bad)">không khớp / im lặng</text>`;
+  const fb=[{t:"Nhắc lần 1",d:"Xin lỗi ngắn + câu rút gọn"},{t:"Nhắc lần 2",d:"Thêm lựa chọn / ví dụ + nút"},{t:"Chuyển nhân viên",d:"Lỗi lần 3 hoặc 3 lỗi liên tiếp"}];
+  const fy=318, fw=210, fgap=60, fx0=(W-(3*fw+2*fgap))/2;
+  s+=`<line x1="${fx0+fw/2}" y1="${by}" x2="${fx0+fw/2}" y2="${fy-2}" stroke="var(--bad)" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#arR)"/>`;
+  fb.forEach((f,k)=>{
+    const x=fx0+k*(fw+fgap), last=k===2;
+    s+=`<rect x="${x}" y="${fy}" width="${fw}" height="58" rx="10" fill="${last?"var(--bad)":"var(--surface)"}" stroke="var(--bad)" stroke-width="1.5"/>`;
+    s+=`<text x="${x+fw/2}" y="${fy+24}" text-anchor="middle" font-size="12.5" font-weight="700" fill="${last?"var(--surface)":"var(--bad)"}">${f.t}</text>`;
+    s+=`<text x="${x+fw/2}" y="${fy+42}" text-anchor="middle" font-size="11" fill="${last?"var(--surface)":"var(--ink)"}">${f.d}</text>`;
+    if (k<2) { s+=`<line x1="${x+fw}" y1="${fy+29}" x2="${x+fw+fgap-2}" y2="${fy+29}" stroke="var(--bad)" stroke-width="1.5" marker-end="url(#arR)"/><text x="${x+fw+fgap/2}" y="${fy+21}" text-anchor="middle" font-size="9.5" fill="var(--bad)">vẫn lỗi</text>`; }
+  });
+  s+=`<path d="M${fx0+fw+fgap+fw/2},${fy} C${fx0+fw+fgap+fw/2},${fy-30} ${fx0+fw/2+40},${fy-30} ${fx0+fw/2+40},${by+6}" fill="none" stroke="var(--good)" stroke-width="1.2" marker-end="url(#ar)"/>`;
+  s+=`<text x="${fx0+fw+28}" y="${fy-30}" font-size="10" fill="var(--good)">khớp → về nút đang hỏi, bộ đếm = 0</text>`;
+  s+=`<text x="${W-14}" y="${H-12}" text-anchor="end" font-size="10.5" fill="var(--muted)">Ở mọi nút: “gặp nhân viên” → chuyển ngay · “bắt đầu lại” → về N1</text>`;
+  s+=`</svg>`;
+  $("#diagram").innerHTML=s;
+})();
+
+restart();
+})();
+</script>
